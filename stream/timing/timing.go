@@ -61,6 +61,28 @@ func NewInterfaceTimingOp() (oper stream.Operator, count *uint32, duration *time
 	op := mapper.NewOpExitor(fn, closefn, "InterfaceTimingOp")
 	return op, counter, &dur
 }
+*/func NewInterfaceTimingOp() (oper stream.Operator, count *uint32, duration *time.Duration) {
+	var counter = new(uint32)
+	var dur time.Duration
+
+	var start_batch_time *time.Time
+	fn := func(msg interface{}) []interface{} {
+		if start_batch_time == nil {
+			var now = time.Now()
+			start_batch_time = &now
+		}
+		atomic.AddUint32(counter, 1)
+		return []interface{}{msg}
+	}
+
+	closefn := func() {
+		dur = time.Since(*start_batch_time)
+		log.Printf("On Close took %f s %d ns, items %v, %v items/sec", dur.Seconds(), dur.Nanoseconds(), *counter, float64(*counter)/dur.Seconds())
+	}
+
+	op := mapper.NewOpExitor(fn, closefn, "InterfaceTimingOp")
+	return op, counter, &dur
+}
 */
 func NewInterfaceTimingOp() (oper stream.Operator, count *uint32, duration *time.Duration) {
 	var counter = new(uint32)
